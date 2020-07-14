@@ -17,6 +17,11 @@ function DMAdmin:OnInitialize()
             function (id, confirmed) DMAdmin:onConfirmationSet(id, confirmed) end
     )
 
+    DMComm:setCallback(
+            'onCheckBroadcast',
+            function (from, data) DMAdmin:onCheckBroadcast(from, data) end
+    )
+
     if (AdminDuties ~= nil and #AdminDuties > 0) then
         DMAdmin:consolidate()
     end
@@ -43,6 +48,10 @@ end
 
 function DMAdmin:onRosterUpdate()
     DMAdmin:consolidate()
+end
+
+function DMAdmin:onCheckBroadcast(from, data)
+    -- TODO
 end
 
 function DMAdmin:consolidate()
@@ -214,9 +223,9 @@ function DMAdmin:createDutyRow(duty, raidList, iconList, raid)
     )
 
     assignee:SetWidth(120)
-    taskIcon:SetWidth(50)
+    taskIcon:SetWidth(100)
     task:SetWidth(200)
-    targetIcon:SetWidth(50)
+    targetIcon:SetWidth(100)
     target:SetWidth(100)
     note:SetWidth(250)
     btnSend:SetWidth(100)
@@ -256,7 +265,6 @@ function DMAdmin:createDutyRow(duty, raidList, iconList, raid)
         local confirmedLabelText = duty.confirmed and DMUtils:createTextureString("interface/achievementframe/ui-achievement-criteria-check.blp") or ""
         confirmedLabel:SetText(confirmedLabelText)
 
-
         btnDelete:SetWidth(100)
         confirmedLabel:SetWidth(50)
 
@@ -291,12 +299,13 @@ function DMAdmin:deleteAdminDuty(id)
 end
 
 -- duty={id, manager, assignee, task, target, note, icon, taskIcon}
-function DMAdmin:fillAdminDuties(duties)
-    DMAdmin.var.frame:ReleaseChildren()
-
+function DMAdmin:fillAdminDuties(widget, duties)
     local raid = DMUtils:getGroupMembers()
     table.sort(raid, function (a, b)
-        return a.name < b.name
+        if (a.class == nil or b.class == nil or a.class == b.class) then
+            return a.name < b.name
+        end
+        return a.class < b.class
     end)
 
     local raidList = {}
@@ -313,22 +322,20 @@ function DMAdmin:fillAdminDuties(duties)
     if (duties ~= nil) then
         for _, d in ipairs(duties) do
             local row = DMAdmin:createDutyRow(d, raidList, iconList, raid)
-            DMAdmin.var.frame:AddChild(row)
+            widget:AddChild(row)
         end
     end
 
     local row = DMAdmin:createDutyRow(nil, raidList, iconList, raid)
 
-    DMAdmin.var.frame:AddChild(row)
+    widget:AddChild(row)
 end
 
 
 function DMAdmin:show(duties)
     if (not DMAdmin.var.shown) then
         local frame = AceGUI:Create("Frame")
-        frame:SetTitle("duties")
-        frame:SetWidth(600)
-        frame:SetHeight(500)
+        frame:SetTitle("Duty Manager - Admin")
         frame:SetLayout("Flow");
         frame:SetCallback("OnClose", function() DMAdmin:hide() end)
         DMAdmin:RawHookScript(frame.frame, "OnHide",
@@ -340,6 +347,10 @@ function DMAdmin:show(duties)
                         x = x,
                         y = y,
                     };
+                    DMSettingsAdmin.size = {
+                        width=frame.frame:GetWidth(),
+                        height=frame.frame:GetHeight()
+                    }
                     self.hooks[f].OnHide(f)
                 end
         )
@@ -348,7 +359,18 @@ function DMAdmin:show(duties)
 
         DMAdmin.var.frame = frame
 
-        DMAdmin:fillAdminDuties(duties)
+        local scrollcontainer = AceGUI:Create("SimpleGroup")
+        scrollcontainer:SetFullWidth(true)
+        scrollcontainer:SetFullHeight(true)
+        scrollcontainer:SetLayout("Fill")
+
+        local scroll = AceGUI:Create("ScrollFrame")
+        scroll:SetLayout("Flow")
+        scrollcontainer:AddChild(scroll)
+
+        frame:AddChild(scrollcontainer)
+
+        DMAdmin:fillAdminDuties(scroll, duties)
 
         DMAdmin:PositionFrame()
         frame:Show()
@@ -390,6 +412,14 @@ function DMAdmin:PositionFrame()
             );
         else
             DMAdmin.var.frame:SetPoint("RIGHT", "UIParent", "RIGHT", 0, 0);
+        end
+
+        if (DMSettingsAdmin.size ~= nil) then
+            DMAdmin.var.frame:SetWidth(DMSettingsAdmin.size.width)
+            DMAdmin.var.frame:SetHeight(DMSettingsAdmin.size.height)
+        else
+            DMAdmin.var.frame:SetWidth(800)
+            DMAdmin.var.frame:SetHeight(500)
         end
     end
 end
