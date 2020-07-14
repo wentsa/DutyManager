@@ -28,7 +28,6 @@ function DMComm:setCallback(name, cb)
 end
 
 function DMComm:OnDutySet(prefix, message, distribution, sender)
-    -- print("comm onDutySet: " .. prefix .. ";" .. message .. ";" .. distribution .. ";" .. sender)
     local success, duty = LibAceSerializer:Deserialize(message)
     if (success and duty.manager == sender and DMUtils:isManager(sender)) then
         if (duty.assignee == DMUtils:playerName()) then
@@ -61,11 +60,17 @@ end
 
 
 -- duty={id, manager, assignee, task, target, note, icon, taskIcon}
-function DMComm:SetDuty(duty, onError)
+function DMComm:SetDuty(duty, onError, hasAddon)
     if (DMUtils:isInYourGroup(duty.assignee)) then
         if (DMUtils:isOnline(duty.assignee)) then
-            local data = LibAceSerializer:Serialize(duty);
-            DMComm:SendCommMessage(TYPES.SET_DUTY, data, "WHISPER", duty.assignee)
+            if (hasAddon) then
+                local data = LibAceSerializer:Serialize(duty);
+                DMComm:SendCommMessage(TYPES.SET_DUTY, data, "WHISPER", duty.assignee)
+            elseif (duty.task ~= nil and duty.task ~= "" and duty.task ~= "nil") then
+                SendChatMessage("New duty assigned:", "WHISPER", nil, duty.assignee);
+                SendChatMessage(DMUtils:SerializeDuty(duty), "WHISPER", nil, duty.assignee);
+                SendChatMessage("Confirm by replying \"+\" or download Duty Manager for better user experience.", "WHISPER", nil, duty.assignee);
+            end
         elseif (onError ~= nil) then
             onError("offline")
         end
@@ -80,10 +85,11 @@ function DMComm:SetConfirmation(duty, confirmed)
 end
 
 function DMComm:Check(who)
-    DMComm:SendCommMessage(TYPES.CHECK_ADDON, "", "WHISPER", who)
+    DMComm:SendCommMessage(TYPES.CHECK_ADDON, "c", "WHISPER", who)
 end
 
 function DMComm:CheckBroadcast(to, obj)
     local data = LibAceSerializer:Serialize(obj);
+    DMComm:SendCommMessage(TYPES.CHECK_BROADCAST, data, "WHISPER", to) -- TODO v realu nebude potreba mimo debug
     DMComm:SendCommMessage(TYPES.CHECK_BROADCAST, data, "RAID")
 end

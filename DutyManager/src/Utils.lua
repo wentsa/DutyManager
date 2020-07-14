@@ -117,3 +117,26 @@ function DMUtils:dump(o)
         return tostring(o)
     end
 end
+
+-- id, manager, assignee, task, target, note, icon, taskIcon
+function DMUtils:SerializeDuty(duty)
+    local str = duty.task;
+    if (duty.icon ~= nil or duty.target ~= nil) then
+        str = str .. " -> "
+        if (duty.icon ~= nil) then
+            for k in pairs(DMConfig.raidTarget) do
+                if (DMConfig.raidTarget[k] == duty.icon) then
+                    str = str .. DMConfig.raidTargetChat[k] .. " "
+                    break
+                end
+            end
+        end
+        if (duty.target ~= nil) then
+            str = str .. duty.target .. " "
+        end
+    end
+    if (duty.note ~= nil and duty.note ~= "") then
+        str = str .. "(" .. duty.note .. ")"
+    end
+    return str;
+end

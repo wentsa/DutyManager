@@ -39,11 +39,13 @@ function DMAdmin:OnEnable()
             end,
             true
     )
+    DMAdmin:RegisterEvent("CHAT_MSG_WHISPER", "OnWhisperMessage")
 end
 
 function DMAdmin:OnDisable()
     DMAdmin:UnregisterEvent("GROUP_ROSTER_UPDATE")
     DMAdmin:UnregisterChatCommand("duty")
+    DMAdmin:UnregisterEvent("CHAT_MSG_WHISPER")
 end
 
 function DMAdmin:onRosterUpdate()
@@ -51,13 +53,32 @@ function DMAdmin:onRosterUpdate()
 end
 
 function DMAdmin:onCheckBroadcast(from, data)
-    -- TODO
+    if (DMSettingsAdmin.checks == nil) then
+        DMSettingsAdmin.checks = {}
+    end
+
+    DMSettingsAdmin.checks[from] = true
+end
+
+function DMAdmin:OnWhisperMessage(self, message, author)
+    if (message == "+" and AdminDuties ~= nil) then
+        local sender = author:match("(.+)-(.+)")
+        if (DMSettingsAdmin.checks == nil or not DMSettingsAdmin.checks[sender]) then
+            for index, value in ipairs(AdminDuties) do
+                if (value.assignee == sender) then
+                    AdminDuties[index].confirmed = true
+                end
+            end
+            DMAdmin:refresh(AdminDuties)
+        end
+    end
 end
 
 function DMAdmin:consolidate()
     if (not DMUtils:isInGroup()) then
         DMAdmin:hide()
         AdminDuties = nil
+        DMSettingsAdmin.checks = nil
     elseif (AdminDuties ~= nil) then
         local refresh = false
         for i=#AdminDuties,1,-1 do
@@ -145,6 +166,9 @@ function DMAdmin:createDutyRow(duty, raidList, iconList, raid)
         assignee:SetList(raidList)
         assignee:SetCallback("OnValueChanged", function (key)
             assigneeText = DMUtils:getNameFromClassString(raidList[assignee:GetValue()])
+            if (DMSettingsAdmin.checks == nil or not DMSettingsAdmin.checks[assigneeText]) then
+                DMComm:Check(assigneeText)
+            end
             actualTaskIconListRaw, actualTaskIconList = DMAdmin:getClassDutyList(raid, assigneeText)
             taskIcon:SetList(actualTaskIconList)
             taskIcon:SetValue(1)
@@ -213,9 +237,11 @@ function DMAdmin:createDutyRow(duty, raidList, iconList, raid)
 
                 DMComm:SetDuty(
                         newDuty,
-                function (reason)
-                    print("could not send duty: " .. reason)
-                end)
+                        function (reason)
+                            print("could not send duty: " .. reason)
+                        end,
+                        DMSettingsAdmin.checks ~= nil and DMSettingsAdmin.checks[assigneeText]
+                )
 
                 DMAdmin:refresh(AdminDuties)
 

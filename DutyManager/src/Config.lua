@@ -12,6 +12,16 @@ DMConfig = {
         ORANGE="interface/targetingframe/ui-raidtargetingicon_2.blp",
         STAR="interface/targetingframe/ui-raidtargetingicon_1.blp",
     },
+    raidTargetChat = {
+        SKULL="{Skull}",
+        CROSS="{Cross}",
+        BLUE="{Square}",
+        MOON="{Moon}",
+        GREEN="{Triangle}",
+        PURPLE="{Diamond}",
+        ORANGE="{Orange}",
+        STAR="{Star}",
+    },
     taskList = {
         WARRIOR={
             {
