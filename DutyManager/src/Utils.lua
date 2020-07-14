@@ -81,11 +81,11 @@ function DMUtils:getClassColor(class)
 end
 
 function DMUtils:createTextureString(path)
-    return "|T" .. path .. ":0|t"
+    return "|T" .. path .. ":16|t"
 end
 
 function DMUtils:getPathFromTextureString(str)
-    return string.sub(str, 3, string.len(str) - 4)
+    return string.sub(str, 3, string.len(str) - 5)
 end
 
 function DMUtils:createClassString(color, text)
