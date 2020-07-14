@@ -18,7 +18,16 @@ function DutyManager:OnInitialize()
             end
     )
 
-    DutyManager:consolidate()
+    DMComm:setCallback(
+            'onCheck',
+            function (from)
+                DMComm:CheckBroadcast(from, {
+                    version=DMConfig.version
+                })
+            end
+    )
+
+    DutyManager:consolidate(true)
 end
 
 function DutyManager:OnEnable()
@@ -33,7 +42,7 @@ function DutyManager:onRosterUpdate()
     DutyManager:consolidate()
 end
 
-function DutyManager:consolidate()
+function DutyManager:consolidate(forceShow)
     if (not DMUtils:isInGroup()) then
         DutyManager:hide()
         MyDuties = nil
@@ -45,6 +54,8 @@ function DutyManager:consolidate()
         end
         if (DutyManager.var.shown) then
             DutyManager:refresh(MyDuties)
+        elseif (forceShow) then
+            DutyManager:show(MyDuties)
         end
     end
 end
@@ -84,13 +95,26 @@ function DutyManager:fillDuties(duties)
         local taskLabel = AceGUI:Create("InteractiveLabel")
         taskLabel:SetText(d.task)
 
-        local targetLabel = AceGUI:Create("Label")
-        targetLabel:SetText(d.target)
-        if (d.icon ~= nil) then
-            targetLabel:SetImage(d.icon)
+        local taskIcon;
+        if (d.taskIcon ~= nil) then
+            taskIcon = AceGUI:Create("Icon")
+            taskIcon:SetImage(d.taskIcon)
+            taskIcon:SetImageSize(16, 16)
+            taskIcon.frame:EnableMouse(false)
+            taskIcon.image:SetPoint("TOP", 0, -2)
         end
 
+        local targetLabel = AceGUI:Create("Label")
+        targetLabel:SetText(d.target)
 
+        local targetIcon;
+        if (d.icon ~= nil) then
+            targetIcon = AceGUI:Create("Icon")
+            targetIcon:SetImage(d.icon)
+            targetIcon:SetImageSize(16, 16)
+            targetIcon.frame:EnableMouse(false)
+            targetIcon.image:SetPoint("TOP", 0, -2)
+        end
 
         local tooltip = GameTooltip;
         taskLabel:SetCallback("OnEnter", function(widget)
@@ -112,14 +136,28 @@ function DutyManager:fillDuties(duties)
             end
         end);
 
+        if (taskIcon ~= nil) then
+            taskIcon:SetHeight(20)
+            taskIcon:SetWidth(30)
+            group:AddChild(taskIcon)
+        end
+
+        taskLabel:SetHeight(20)
+        taskLabel:SetWidth(150)
         group:AddChild(taskLabel)
+
+        if (targetIcon ~= nil) then
+            targetIcon:SetHeight(20)
+            targetIcon:SetWidth(30)
+            group:AddChild(targetIcon)
+        end
+
+        targetLabel:SetHeight(20)
+        targetLabel:SetWidth(120)
         group:AddChild(targetLabel)
 
         if (not d.confirmed) then
-            local btnConfirm = AceGUI:Create("Button")
-            btnConfirm:SetText("ok")
-            btnConfirm:SetWidth(100)
-            btnConfirm:SetHeight(30)
+            local btnConfirm = AceGUI:Create("ConfirmButton")
             btnConfirm:SetCallback(
                     "OnClick",
                     function()
@@ -133,7 +171,24 @@ function DutyManager:fillDuties(duties)
                     end
             )
             group:AddChild(btnConfirm)
+
+            btnConfirm:ClearAllPoints();
+            btnConfirm:SetPoint("RIGHT", group.frame, "RIGHT", 0, 0)
         end
+
+        taskLabel:ClearAllPoints();
+        if (taskIcon ~= nil) then
+            taskLabel:SetPoint("LEFT", taskIcon.frame, "RIGHT")
+        else
+            taskLabel:SetPoint("LEFT", group.frame, "RIGHT")
+        end
+
+        targetLabel:ClearAllPoints();
+        if (targetIcon ~= nil) then
+            targetLabel:SetPoint("LEFT", targetIcon.frame, "RIGHT")
+        end
+
+        group:SetHeight(20)
 
         DutyManager.var.frame:AddChild(group)
     end
@@ -141,13 +196,11 @@ end
 
 function DutyManager:show(duties)
     if (not DutyManager.var.shown) then
-        local frame = AceGUI:Create("Frame")
-        frame:SetTitle("duties")
-        frame:SetWidth(600)
-        frame:SetHeight(500)
+        local frame = AceGUI:Create("DutyFrame")
+        frame:SetWidth(410)
+        frame:SetHeight(35)
         frame:SetLayout("Flow");
         frame:SetCallback("OnClose", function() DutyManager:hide() end)
-        frame:EnableResize(false);
         DutyManager:RawHookScript(frame.frame, "OnHide",
                 function(f)
                     local point, relativeTo, relativePoint, x, y = frame:GetPoint()
@@ -160,7 +213,19 @@ function DutyManager:show(duties)
                     self.hooks[f].OnHide(f)
                 end
         )
-        frame.frame:SetFrameStrata("DIALOG")
+
+        DutyManager:RawHookScript(frame.frame, "OnDragStop",
+                function(f)
+                    local point, relativeTo, relativePoint, x, y = frame:GetPoint()
+                    DMSettings.position = {
+                        point = point,
+                        relativePoint = relativePoint,
+                        x = x,
+                        y = y,
+                    };
+                    self.hooks[f].OnDragStop(f)
+                end
+        )
 
         DutyManager.var.frame = frame
 
@@ -179,6 +244,7 @@ function DutyManager:hide()
         if (widget ~= nil) then
             AceGUI:Release(widget)
             DutyManager:Unhook(widget.frame, "OnHide")
+            DutyManager:Unhook(widget.frame, "OnDragStop")
             DutyManager.var = {
                 shown = false,
                 frame = nil,

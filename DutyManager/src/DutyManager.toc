@@ -13,5 +13,7 @@ embeds.xml
 Config.lua
 Utils.lua
 Comm.lua
+widgets/DutyFrame.lua
+widgets/ConfirmButton.lua
 DutyManager.lua
 DMAdmin.lua
