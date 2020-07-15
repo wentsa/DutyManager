@@ -135,8 +135,12 @@ function DMUtils:SerializeDuty(duty)
             str = str .. duty.target .. " "
         end
     end
-    if (duty.note ~= nil and duty.note ~= "") then
+    if (not DMUtils:isEmptyString(duty.note)) then
         str = str .. "(" .. duty.note .. ")"
     end
     return str;
+end
+
+function DMUtils:isEmptyString(val)
+    return val == nil or val == ""
 end

@@ -93,6 +93,18 @@ function DMAdmin:consolidate()
     end
 end
 
+function DMAdmin:validate(d)
+    if (DMUtils:isEmptyString(d.assignee)) then
+        return "You have to assign a player"
+    end
+    if (DMUtils:isEmptyString(d.task)) then
+        return "Task cannot be empty"
+    end
+    if (DMUtils:isEmptyString(d.icon) and DMUtils:isEmptyString(d.target)) then
+        return "There is no target or mark assigned"
+    end
+end
+
 function DMAdmin:onConfirmationSet(id, confirmed)
     local duty, idx = DMUtils:searchDutyById(id, AdminDuties)
     if (duty ~= nil) then
@@ -180,6 +192,14 @@ function DMAdmin:createDutyRow(duty, raidList, iconList, raid)
         assignee = AceGUI:Create("Label")
         assignee:SetText(duty.assignee)
         assigneeText = duty.assignee
+
+        for k in pairs(raid) do
+            if (raid[k].name == duty.assignee) then
+                local color = DMUtils:getClassColor(raid[k].class)
+                assignee:SetText(DMUtils:createClassString(color, raid[k].name))
+                break
+            end
+        end
     end
 
     local defaultTaskIconValue = 1
@@ -233,26 +253,29 @@ function DMAdmin:createDutyRow(duty, raidList, iconList, raid)
                     confirmed=false
                 }
 
-                DMAdmin:addNewAdminDuty(newDuty)
-
-                DMComm:SetDuty(
-                        newDuty,
-                        function (reason)
-                            print("could not send duty: " .. reason)
-                        end,
-                        DMSettingsAdmin.checks ~= nil and DMSettingsAdmin.checks[assigneeText]
-                )
-
-                DMAdmin:refresh(AdminDuties)
+                local validateError = DMAdmin:validate(newDuty);
+                if(validateError) then
+                    DMAdmin.var.frame:SetStatusText("|cFFFF0000" .. "ASSIGNING ERROR: " .. validateError .. "|r")
+                else
+                    DMAdmin:addNewAdminDuty(newDuty)
+                    DMComm:SetDuty(
+                            newDuty,
+                            function (reason)
+                                print("could not send duty: " .. reason)
+                            end,
+                            DMSettingsAdmin.checks ~= nil and DMSettingsAdmin.checks[assigneeText]
+                    )
+                    DMAdmin:refresh(AdminDuties)
+                end
 
             end
     )
 
-    assignee:SetWidth(120)
-    taskIcon:SetWidth(100)
-    task:SetWidth(200)
-    targetIcon:SetWidth(100)
-    target:SetWidth(100)
+    assignee:SetWidth(150)
+    taskIcon:SetWidth(60)
+    task:SetWidth(150)
+    targetIcon:SetWidth(60)
+    target:SetWidth(150)
     note:SetWidth(250)
     btnSend:SetWidth(100)
 
@@ -288,7 +311,13 @@ function DMAdmin:createDutyRow(duty, raidList, iconList, raid)
         )
 
         local confirmedLabel = AceGUI:Create("Label")
-        local confirmedLabelText = duty.confirmed and DMUtils:createTextureString("interface/achievementframe/ui-achievement-criteria-check.blp") or ""
+        local confirmedLabelText;
+        if(duty.confirmed) then
+           confirmedLabelText = "OK"
+            --duty.confirmed and DMUtils:createTextureString("interface/achievementframe/ui-achievement-criteria-check.blp") or ""
+        else
+            confirmedLabelText = "pend"
+        end
         confirmedLabel:SetText(confirmedLabelText)
 
         btnDelete:SetWidth(100)
@@ -297,8 +326,6 @@ function DMAdmin:createDutyRow(duty, raidList, iconList, raid)
         group:AddChild(btnDelete)
         group:AddChild(confirmedLabel)
     end
-
-
 
     return group
 end
@@ -391,7 +418,7 @@ function DMAdmin:show(duties)
         scrollcontainer:SetLayout("Fill")
 
         local scroll = AceGUI:Create("ScrollFrame")
-        scroll:SetLayout("Flow")
+        scroll:SetLayout("List")
         scrollcontainer:AddChild(scroll)
 
         frame:AddChild(scrollcontainer)

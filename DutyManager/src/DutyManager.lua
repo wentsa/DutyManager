@@ -65,7 +65,7 @@ end
 function DutyManager:onDutySet(duty)
     local found, foundIdx = DMUtils:searchDutyById(duty.id, MyDuties)
 
-    if (duty.task ~= nil and duty.task ~= "" and duty.task ~= "nil") then
+    if (not DMUtils:isEmptyString(duty.task)) then
         if (MyDuties == nil) then
             MyDuties = {}
         end
@@ -125,7 +125,7 @@ function DutyManager:fillDuties(duties)
                     tooltip:SetOwner(taskLabel.frame, "ANCHOR_NONE")
                     tooltip:ClearAllPoints()
                     tooltip:SetPoint("TOPLEFT", taskLabel.frame, "BOTTOMLEFT")
-                    if (d.note ~= nil) then
+                    if (not DMUtils:isEmptyString(d.note)) then
                         tooltip:AddLine(d.note .. "\n")
                     end
                     tooltip:AddLine("by " .. d.manager)
@@ -202,7 +202,7 @@ function DutyManager:show(duties)
         local frame = AceGUI:Create("DutyFrame")
         frame:SetWidth(410)
         frame:SetHeight(35)
-        frame:SetLayout("Flow");
+        frame:SetLayout("List");
         frame:SetCallback("OnClose", function() DutyManager:hide() end)
         DutyManager:RawHookScript(frame.frame, "OnHide",
                 function(f)

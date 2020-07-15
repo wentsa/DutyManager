@@ -66,7 +66,7 @@ function DMComm:SetDuty(duty, onError, hasAddon)
             if (hasAddon) then
                 local data = LibAceSerializer:Serialize(duty);
                 DMComm:SendCommMessage(TYPES.SET_DUTY, data, "WHISPER", duty.assignee)
-            elseif (duty.task ~= nil and duty.task ~= "" and duty.task ~= "nil") then
+            elseif (not DMUtils:isEmptyString(duty.task)) then
                 SendChatMessage("New duty assigned:", "WHISPER", nil, duty.assignee);
                 SendChatMessage(DMUtils:SerializeDuty(duty), "WHISPER", nil, duty.assignee);
                 SendChatMessage("Confirm by replying \"+\" or download Duty Manager for better user experience.", "WHISPER", nil, duty.assignee);
