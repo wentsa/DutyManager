@@ -6,10 +6,10 @@ function DMUtils:isInGroup()
 end
 
 function DMUtils:isManager(unit)
-    return true
-    --unit = unit or "player"
+    --return true
+    unit = unit or "player"
     --print("isManager (" .. unit .. "): " .. tostring(UnitIsGroupAssistant(unit) or UnitIsGroupLeader(unit)))
-    --return UnitIsGroupAssistant(unit) or UnitIsGroupLeader(unit)
+    return UnitIsGroupAssistant(unit) or UnitIsGroupLeader(unit)
 end
 
 function DMUtils:isInYourGroup(unit)
@@ -30,6 +30,7 @@ function DMUtils:playerName()
 end
 
 function DMUtils:isOnline(unit)
+    print("isOnline ("..unit.."): ".. tostring(UnitIsConnected(unit)))
     return UnitIsConnected(unit)
 end
 
@@ -59,12 +60,12 @@ function DMUtils:getGroupMembers()
                 }
             end
         end
-    else
-        -- TODO debug only
-        raid[1] = {
-            name=DMUtils:playerName(),
-            class=UnitClass("player"),
-        }
+    --else
+    --    -- TODO debug only
+    --    raid[1] = {
+    --        name=DMUtils:playerName(),
+    --        class=UnitClass("player"),
+    --    }
     end
     return raid
 end
@@ -121,7 +122,7 @@ end
 -- id, manager, assignee, task, target, note, icon, taskIcon
 function DMUtils:SerializeDuty(duty)
     local str = duty.task;
-    if (duty.icon ~= nil or duty.target ~= nil) then
+    if (duty.icon ~= nil or not DMUtils:isEmptyString(duty.target)) then
         str = str .. " -> "
         if (duty.icon ~= nil) then
             for k in pairs(DMConfig.raidTarget) do

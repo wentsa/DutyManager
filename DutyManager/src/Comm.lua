@@ -85,12 +85,14 @@ function DMComm:SetDuty(duty, onError, hasAddon)
                 SendChatMessage(DMUtils:SerializeDuty(duty), "WHISPER", nil, duty.assignee);
                 SendChatMessage("Confirm by replying \"+\" or download Duty Manager for better user experience.", "WHISPER", nil, duty.assignee);
             end
+            return true
         elseif (onError ~= nil) then
             onError("Player is offline")
         end
     elseif (onError ~= nil) then
         onError("Player is not in your group")
     end
+    return false
 end
 
 function DMComm:DeleteDuty(duty, onError, hasAddon)
@@ -100,12 +102,14 @@ function DMComm:DeleteDuty(duty, onError, hasAddon)
                 local data = LibAceSerializer:Serialize(duty);
                 DMComm:SendCommMessage(TYPES.DELETE_DUTY, data, "WHISPER", duty.assignee)
             end
+            return true
         elseif (onError ~= nil) then
             onError("Player is offline")
         end
     elseif (onError ~= nil) then
         onError("Player is not in your group")
     end
+    return false
 end
 
 function DMComm:SetConfirmation(duty, confirmed)

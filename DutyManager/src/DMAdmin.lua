@@ -101,9 +101,6 @@ function DMAdmin:validate(d)
     if (DMUtils:isEmptyString(d.task)) then
         return "Task cannot be empty"
     end
-    if (DMUtils:isEmptyString(d.icon) and DMUtils:isEmptyString(d.target)) then
-        return "There is no target or mark assigned"
-    end
 end
 
 function DMAdmin:onConfirmationSet(id, confirmed)
@@ -264,17 +261,17 @@ function DMAdmin:createDutyRow(duty, raidList, iconList, raid)
                 if(validateError) then
                     DMAdmin:displayAssigningError(validateError)
                 else
-                    DMAdmin:addNewAdminDuty(newDuty)
-                    DMComm:SetDuty(
+                    if (DMComm:SetDuty(
                             newDuty,
                             function (reason)
                                 DMAdmin:displayAssigningError(reason)
                             end,
                             DMSettingsAdmin.checks ~= nil and DMSettingsAdmin.checks[assigneeText]
-                    )
-                    DMAdmin:refresh(AdminDuties)
+                    )) then
+                        DMAdmin:addNewAdminDuty(newDuty)
+                        DMAdmin:refresh(AdminDuties)
+                    end
                 end
-
             end
     )
 
@@ -300,9 +297,7 @@ function DMAdmin:createDutyRow(duty, raidList, iconList, raid)
         btnDelete:SetCallback(
                 "OnClick",
                 function ()
-                    DMAdmin:deleteAdminDuty(duty.id) -- TODO mozna delete az po success /confirm delete
-
-                    DMComm:DeleteDuty(
+                    if(DMComm:DeleteDuty(
                             {
                                 id=duty.id,
                                 manager=duty.manager,
@@ -312,10 +307,10 @@ function DMAdmin:createDutyRow(duty, raidList, iconList, raid)
                                 DMAdmin:displayAssigningError(reason)
                             end,
                             DMSettingsAdmin.checks ~= nil and DMSettingsAdmin.checks[duty.assignee]
-                    )
-
-                    DMAdmin:refresh(AdminDuties)
-
+                    )) then
+                        DMAdmin:deleteAdminDuty(duty.id)
+                        DMAdmin:refresh(AdminDuties)
+                    end
                 end
         )
 
