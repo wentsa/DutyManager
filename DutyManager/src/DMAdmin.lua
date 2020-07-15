@@ -22,23 +22,24 @@ function DMAdmin:OnInitialize()
             function (from, data) DMAdmin:onCheckBroadcast(from, data) end
     )
 
+    DMAdmin:createMinimapButton()
+
     if (AdminDuties ~= nil and #AdminDuties > 0) then
         DMAdmin:consolidate()
     end
 end
 
+function DMAdmin:open()
+    if (DMUtils:isManager("player")) then
+        DMAdmin:show(AdminDuties)
+    else
+        print("Only leader and assistants can assign duties")
+    end
+end
+
 function DMAdmin:OnEnable()
     DMAdmin:RegisterEvent("GROUP_ROSTER_UPDATE", "onRosterUpdate")
-    DMAdmin:RegisterChatCommand("duty",
-            function ()
-                if (DMUtils:isManager("player")) then
-                    DMAdmin:show(AdminDuties)
-                else
-                    print("Only leader and assistants can assign duties")
-                end
-            end,
-            true
-    )
+    DMAdmin:RegisterChatCommand("duty", function () DMAdmin:open() end, true)
     DMAdmin:RegisterEvent("CHAT_MSG_WHISPER", "OnWhisperMessage")
 end
 
@@ -471,8 +472,74 @@ function DMAdmin:PositionFrame()
             DMAdmin.var.frame:SetWidth(DMSettingsAdmin.size.width)
             DMAdmin.var.frame:SetHeight(DMSettingsAdmin.size.height)
         else
-            DMAdmin.var.frame:SetWidth(800)
+            DMAdmin.var.frame:SetWidth(1250)
             DMAdmin.var.frame:SetHeight(500)
         end
     end
+end
+
+function DMAdmin:createMinimapButton()
+    local btn = CreateFrame("Button", nil, Minimap)
+
+    btn:SetFrameStrata('HIGH')
+    btn:SetWidth(31)
+    btn:SetHeight(31)
+    btn:SetFrameLevel(8)
+    btn:RegisterForClicks('anyUp')
+    btn:SetHighlightTexture('Interface\\Minimap\\UI-Minimap-ZoomButton-Highlight')
+
+
+    local overlay = btn:CreateTexture(nil, 'OVERLAY')
+    overlay:SetWidth(53)
+    overlay:SetHeight(53)
+    overlay:SetTexture('Interface\\Minimap\\MiniMap-TrackingBorder')
+    overlay:SetPoint('TOPLEFT')
+
+    local icon = btn:CreateTexture(nil, 'BACKGROUND')
+    icon:SetWidth(20)
+    icon:SetHeight(20)
+    icon:SetTexture('interface/icons/inv_offhand_naxxramas_02')
+    icon:SetTexCoord(0.05, 0.95, 0.05, 0.95)
+    icon:SetPoint('TOPLEFT', 7, -5)
+    btn.icon = icon
+
+    btn:SetScript('OnClick', function ()
+        if (DMAdmin.var.shown) then
+            DMAdmin:hide()
+        else
+            DMAdmin:open()
+        end
+    end)
+
+    btn:SetMovable(true)
+
+    if (DMSettingsAdmin.minimapPosition == nil) then
+        DMSettingsAdmin.minimapPosition = 0
+    end
+
+    -- Control movement
+    local function UpdateMapBtn()
+        local Xpoa, Ypoa = GetCursorPosition()
+        local Xmin, Ymin = Minimap:GetLeft(), Minimap:GetBottom()
+        Xpoa = Xmin - Xpoa / Minimap:GetEffectiveScale() + 70
+        Ypoa = Ypoa / Minimap:GetEffectiveScale() - Ymin - 70
+        DMSettingsAdmin.minimapPosition = math.deg(math.atan2(Ypoa, Xpoa))
+        btn:ClearAllPoints()
+        btn:SetPoint("TOPLEFT", Minimap, "TOPLEFT", 52 - (80 * cos(DMSettingsAdmin.minimapPosition)), (80 * sin(DMSettingsAdmin.minimapPosition)) - 52)
+    end
+
+    btn:RegisterForDrag("LeftButton")
+    btn:SetScript("OnDragStart", function()
+        btn:StartMoving()
+        btn:SetScript("OnUpdate", UpdateMapBtn)
+    end)
+
+    btn:SetScript("OnDragStop", function()
+        btn:StopMovingOrSizing();
+        btn:SetScript("OnUpdate", nil)
+        UpdateMapBtn();
+    end)
+
+    btn:ClearAllPoints();
+    btn:SetPoint("TOPLEFT", Minimap, "TOPLEFT", 52 - (80 * cos(DMSettingsAdmin.minimapPosition)),(80 * sin(DMSettingsAdmin.minimapPosition)) - 52)
 end
