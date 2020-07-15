@@ -20,6 +20,11 @@ local CreateFrame, UIParent = CreateFrame, UIParent
 --[[-----------------------------------------------------------------------------
 Scripts
 -------------------------------------------------------------------------------]]
+local function Button_OnMinimizeClick(frame, ...)
+	AceGUI:ClearFocus()
+	PlaySound(852) -- SOUNDKIT.IG_MAINMENU_OPTION
+	frame.obj:Fire("OnMinimizeClick", ...)
+end
 
 local function Frame_OnShow(frame)
 	frame.obj:Fire("OnShow")
@@ -71,6 +76,20 @@ local methods = {
 	["Show"] = function(self)
 		self.frame:Show()
 	end,
+
+	["SetMinimized"] = function(self, minimized)
+		self.minimize:SetText(
+			DMUtils:createTextureString(
+				minimized and "interface/buttons/arrow-down-up.blp" or "interface/buttons/arrow-up-up.blp"
+			)
+		)
+
+		local text = self.minimize:GetFontString()
+		text:ClearAllPoints()
+		text:SetPoint("TOPLEFT", 1, minimized and -12 or 0)
+		text:SetPoint("BOTTOMRIGHT", -1, 1)
+		text:SetJustifyV("MIDDLE")
+	end,
 }
 
 --[[-----------------------------------------------------------------------------
@@ -82,14 +101,6 @@ local FrameBackdrop = {
 	tile = true, tileSize = 32, edgeSize = 32,
 	insets = { left = 8, right = 8, top = 8, bottom = 8 }
 }
-
-local PaneBackdrop  = {
-	bgFile = "Interface\\ChatFrame\\ChatFrameBackground",
-	edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-	tile = true, tileSize = 16, edgeSize = 16,
-	insets = { left = 3, right = 3, top = 5, bottom = 3 }
-}
-
 
 local function Constructor()
 	local frame = CreateFrame("Frame", nil, UIParent)
@@ -112,7 +123,7 @@ local function Constructor()
 	frame:SetScript("OnDragStop", frame.StopMovingOrSizing)
 
 	local minimize = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
-	minimize:SetScript("OnClick", Button_OnClick)
+	minimize:SetScript("OnClick", Button_OnMinimizeClick)
 	minimize:SetPoint("TOPRIGHT", -7, -7)
 	minimize:SetHeight(20)
 	minimize:SetWidth(22)
@@ -138,6 +149,8 @@ local function Constructor()
 	for method, func in pairs(methods) do
 		widget[method] = func
 	end
+
+	minimize.obj = widget
 
 	return AceGUI:RegisterAsContainer(widget)
 end

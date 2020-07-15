@@ -4,6 +4,7 @@ AceGUI = LibStub("AceGUI-3.0")
 DutyManager.var = {
     shown=false,
     frame=nil,
+    minimized=false,
 }
 
 function DutyManager:OnInitialize()
@@ -87,110 +88,112 @@ end
 function DutyManager:fillDuties(duties)
     DutyManager.var.frame:ReleaseChildren()
 
-    for _, d in ipairs(duties) do
-        local group = AceGUI:Create("SimpleGroup")
-        group:SetRelativeWidth(1)
-        group:SetLayout("Flow")
+    if (not DutyManager.var.minimized) then
+        for _, d in ipairs(duties) do
+            local group = AceGUI:Create("SimpleGroup")
+            group:SetRelativeWidth(1)
+            group:SetLayout("Flow")
 
-        local taskLabel = AceGUI:Create("InteractiveLabel")
-        taskLabel:SetText(d.task)
+            local taskLabel = AceGUI:Create("InteractiveLabel")
+            taskLabel:SetText(d.task)
 
-        local taskIcon;
-        if (d.taskIcon ~= nil) then
-            taskIcon = AceGUI:Create("Icon")
-            taskIcon:SetImage(d.taskIcon)
-            taskIcon:SetImageSize(16, 16)
-            taskIcon.frame:EnableMouse(false)
-            taskIcon.image:SetPoint("TOP", 0, -2)
-        end
-
-        local targetLabel = AceGUI:Create("Label")
-        targetLabel:SetText(d.target)
-
-        local targetIcon;
-        if (d.icon ~= nil) then
-            targetIcon = AceGUI:Create("Icon")
-            targetIcon:SetImage(d.icon)
-            targetIcon:SetImageSize(16, 16)
-            targetIcon.frame:EnableMouse(false)
-            targetIcon.image:SetPoint("TOP", 0, -2)
-        end
-
-        local tooltip = GameTooltip;
-        taskLabel:SetCallback("OnEnter", function(widget)
-            if (tooltip ~= nil) then
-                tooltip:ClearLines();
-                tooltip:SetOwner(taskLabel.frame, "ANCHOR_NONE")
-                tooltip:ClearAllPoints()
-                tooltip:SetPoint("TOPLEFT", taskLabel.frame, "BOTTOMLEFT")
-                if (d.note ~= nil) then
-                    tooltip:AddLine(d.note .. "\n")
-                end
-                tooltip:AddLine("by " .. d.manager)
-                tooltip:Show();
+            local taskIcon;
+            if (d.taskIcon ~= nil) then
+                taskIcon = AceGUI:Create("Icon")
+                taskIcon:SetImage(d.taskIcon)
+                taskIcon:SetImageSize(16, 16)
+                taskIcon.frame:EnableMouse(false)
+                taskIcon.image:SetPoint("TOP", 0, -2)
             end
-        end);
-        taskLabel:SetCallback("OnLeave", function()
-            if (tooltip ~= nil) then
-                tooltip:Hide()
+
+            local targetLabel = AceGUI:Create("Label")
+            targetLabel:SetText(d.target)
+
+            local targetIcon;
+            if (d.icon ~= nil) then
+                targetIcon = AceGUI:Create("Icon")
+                targetIcon:SetImage(d.icon)
+                targetIcon:SetImageSize(16, 16)
+                targetIcon.frame:EnableMouse(false)
+                targetIcon.image:SetPoint("TOP", 0, -2)
             end
-        end);
 
-        if (taskIcon ~= nil) then
-            taskIcon:SetHeight(20)
-            taskIcon:SetWidth(30)
-            group:AddChild(taskIcon)
-        end
-
-        taskLabel:SetHeight(20)
-        taskLabel:SetWidth(150)
-        group:AddChild(taskLabel)
-
-        if (targetIcon ~= nil) then
-            targetIcon:SetHeight(20)
-            targetIcon:SetWidth(30)
-            group:AddChild(targetIcon)
-        end
-
-        targetLabel:SetHeight(20)
-        targetLabel:SetWidth(120)
-        group:AddChild(targetLabel)
-
-        if (not d.confirmed) then
-            local btnConfirm = AceGUI:Create("ConfirmButton")
-            btnConfirm:SetCallback(
-                    "OnClick",
-                    function()
-                        local duty, idx = DMUtils:searchDutyById(d.id, MyDuties)
-                        if (duty ~= nil) then
-                            MyDuties[idx].confirmed = true
-                        end
-                        DMComm:SetConfirmation(d, true)
-
-                        DutyManager:refresh(MyDuties)
+            local tooltip = GameTooltip;
+            taskLabel:SetCallback("OnEnter", function(widget)
+                if (tooltip ~= nil) then
+                    tooltip:ClearLines();
+                    tooltip:SetOwner(taskLabel.frame, "ANCHOR_NONE")
+                    tooltip:ClearAllPoints()
+                    tooltip:SetPoint("TOPLEFT", taskLabel.frame, "BOTTOMLEFT")
+                    if (d.note ~= nil) then
+                        tooltip:AddLine(d.note .. "\n")
                     end
-            )
-            group:AddChild(btnConfirm)
+                    tooltip:AddLine("by " .. d.manager)
+                    tooltip:Show();
+                end
+            end);
+            taskLabel:SetCallback("OnLeave", function()
+                if (tooltip ~= nil) then
+                    tooltip:Hide()
+                end
+            end);
 
-            btnConfirm:ClearAllPoints();
-            btnConfirm:SetPoint("RIGHT", group.frame, "RIGHT", 0, 0)
+            if (taskIcon ~= nil) then
+                taskIcon:SetHeight(20)
+                taskIcon:SetWidth(30)
+                group:AddChild(taskIcon)
+            end
+
+            taskLabel:SetHeight(20)
+            taskLabel:SetWidth(150)
+            group:AddChild(taskLabel)
+
+            if (targetIcon ~= nil) then
+                targetIcon:SetHeight(20)
+                targetIcon:SetWidth(30)
+                group:AddChild(targetIcon)
+            end
+
+            targetLabel:SetHeight(20)
+            targetLabel:SetWidth(120)
+            group:AddChild(targetLabel)
+
+            if (not d.confirmed) then
+                local btnConfirm = AceGUI:Create("ConfirmButton")
+                btnConfirm:SetCallback(
+                        "OnClick",
+                        function()
+                            local duty, idx = DMUtils:searchDutyById(d.id, MyDuties)
+                            if (duty ~= nil) then
+                                MyDuties[idx].confirmed = true
+                            end
+                            DMComm:SetConfirmation(d, true)
+
+                            DutyManager:refresh(MyDuties)
+                        end
+                )
+                group:AddChild(btnConfirm)
+
+                btnConfirm:ClearAllPoints();
+                btnConfirm:SetPoint("RIGHT", group.frame, "RIGHT", 0, 0)
+            end
+
+            taskLabel:ClearAllPoints();
+            if (taskIcon ~= nil) then
+                taskLabel:SetPoint("LEFT", taskIcon.frame, "RIGHT")
+            else
+                taskLabel:SetPoint("LEFT", group.frame, "RIGHT")
+            end
+
+            targetLabel:ClearAllPoints();
+            if (targetIcon ~= nil) then
+                targetLabel:SetPoint("LEFT", targetIcon.frame, "RIGHT")
+            end
+
+            group:SetHeight(20)
+
+            DutyManager.var.frame:AddChild(group)
         end
-
-        taskLabel:ClearAllPoints();
-        if (taskIcon ~= nil) then
-            taskLabel:SetPoint("LEFT", taskIcon.frame, "RIGHT")
-        else
-            taskLabel:SetPoint("LEFT", group.frame, "RIGHT")
-        end
-
-        targetLabel:ClearAllPoints();
-        if (targetIcon ~= nil) then
-            targetLabel:SetPoint("LEFT", targetIcon.frame, "RIGHT")
-        end
-
-        group:SetHeight(20)
-
-        DutyManager.var.frame:AddChild(group)
     end
 end
 
@@ -227,6 +230,16 @@ function DutyManager:show(duties)
                 end
         )
 
+        frame:SetCallback(
+                "OnMinimizeClick",
+                function()
+                    DutyManager.var.minimized = not DutyManager.var.minimized
+                    DutyManager:refresh(MyDuties)
+                end
+        )
+
+        frame:SetMinimized(DutyManager.var.minimized)
+
         DutyManager.var.frame = frame
 
         DutyManager:fillDuties(duties)
@@ -248,6 +261,7 @@ function DutyManager:hide()
             DutyManager.var = {
                 shown = false,
                 frame = nil,
+                minimized = DutyManager.var.minimized
             };
         end
     end
