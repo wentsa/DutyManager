@@ -170,19 +170,6 @@ DMConfig = {
         },
         WARLOCK={
             {
-                path="interface/icons/spell_shadow_bloodboil.blp", -- blood pact
-                name="Blood Pact",
-            },
-            {
-                path="interface/icons/inv_misc_orb_04.blp", -- SS
-                name="Soulstone",
-            },
-            {
-                path="interface/icons/inv_stone_04.blp", -- HS
-                name="Healthstone",
-            },
-
-            {
                 path="interface/icons/spell_shadow_unholystrength.blp", -- CoR
                 name="Curse of Recklesness",
             },
@@ -195,6 +182,10 @@ DMConfig = {
                 name="Curse of Elements",
             },
             {
+                path="interface/icons/spell_shadow_curseofsargeras.blp", -- CoA
+                name="Curse of Agony",
+            },
+            {
                 path="interface/icons/spell_shadow_curseofmannoroth.blp", -- CoW
                 name="Curse of Weakness",
             },
@@ -203,21 +194,28 @@ DMConfig = {
                 name="Curse of Tongues",
             },
             {
-                path="interface/icons/spell_shadow_curseofsargeras.blp", -- CoA
-                name="Curse of Agony",
-            },
-            {
                 path="interface/icons/spell_shadow_auraofdarkness.blp", -- CoD
                 name="Curse of Doom",
             },
-
+            {
+                path="interface/icons/spell_shadow_cripple.blp", -- banish
+                name="Banish",
+            },
+            {
+                path="interface/icons/inv_misc_orb_04.blp", -- SS
+                name="Soulstone",
+            },
+            {
+                path="interface/icons/inv_stone_04.blp", -- HS
+                name="Healthstone",
+            },
             {
                 path="interface/icons/spell_shadow_possession.blp", -- fear
                 name="Fear",
             },
             {
-                path="interface/icons/spell_shadow_cripple.blp", -- banish
-                name="Banish",
+                path="interface/icons/spell_shadow_bloodboil.blp", -- blood pact
+                name="Blood Pact",
             },
             {
                 path="interface/icons/spell_shadow_mindrot.blp", -- spell lock
