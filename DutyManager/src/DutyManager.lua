@@ -12,13 +12,8 @@ function DutyManager:OnInitialize()
         position = nil,
     } end;
 
-    DMComm:setCallback(
-            'onDutySet',
-            function(duty)
-                DutyManager:onDutySet(duty)
-            end
-    )
-
+    DMComm:setCallback('onDutySet',function(duty) DutyManager:onDutySet(duty) end)
+    DMComm:setCallback('onDutyDeleted',function(duty) DutyManager:onDutyDeleted(duty) end)
     DMComm:setCallback(
             'onCheck',
             function (from)
@@ -65,23 +60,29 @@ end
 function DutyManager:onDutySet(duty)
     local found, foundIdx = DMUtils:searchDutyById(duty.id, MyDuties)
 
-    if (not DMUtils:isEmptyString(duty.task)) then
-        if (MyDuties == nil) then
-            MyDuties = {}
-        end
-
-        local idx = #MyDuties + 1
-        if (found) then
-            idx = foundIdx
-        end
-
-        MyDuties[idx] = duty
-    else -- remove duty
-        if (found ~= nil) then
-            table.remove (MyDuties, foundIdx)
-        end
+    if (MyDuties == nil) then
+        MyDuties = {}
     end
 
+    local idx = #MyDuties + 1
+    if (found) then
+        idx = foundIdx
+    end
+
+    MyDuties[idx] = duty
+
+    DutyManager.var.minimized = false
+    DutyManager:refresh(MyDuties)
+end
+
+function DutyManager:onDutyDeleted(duty)
+    local found, foundIdx = DMUtils:searchDutyById(duty.id, MyDuties)
+
+    if (found ~= nil) then
+        table.remove(MyDuties, foundIdx)
+    end
+
+    DutyManager.var.minimized = false
     DutyManager:refresh(MyDuties)
 end
 
@@ -128,7 +129,7 @@ function DutyManager:fillDuties(duties)
                     if (not DMUtils:isEmptyString(d.note)) then
                         tooltip:AddLine(d.note .. "\n")
                     end
-                    tooltip:AddLine("by " .. d.manager)
+                    tooltip:AddLine("Manager: " .. d.manager)
                     tooltip:Show();
                 end
             end);

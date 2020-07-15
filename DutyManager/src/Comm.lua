@@ -4,6 +4,7 @@ local LibAceSerializer = LibStub:GetLibrary("AceSerializer-3.0")
 
 local TYPES = {
     SET_DUTY="DM_Duty",
+    DELETE_DUTY="DM_Delete",
     SET_CONFIRMATION="DM_Confirmation",
     CHECK_ADDON="DM_Check",
     CHECK_BROADCAST="DM_Broadcast",
@@ -11,6 +12,7 @@ local TYPES = {
 
 DMComm.callbacks = {
     onDutySet=nil,
+    onDutyDeleted=nil,
     onConfirmationSet=nil,
     onCheck=nil,
     onCheckBroadcast=nil,
@@ -18,6 +20,7 @@ DMComm.callbacks = {
 
 function DMComm:OnEnable()
     DMComm:RegisterComm(TYPES.SET_DUTY, "OnDutySet")
+    DMComm:RegisterComm(TYPES.DELETE_DUTY, "OnDutyDeleted")
     DMComm:RegisterComm(TYPES.SET_CONFIRMATION, "OnConfirmationSet")
     DMComm:RegisterComm(TYPES.CHECK_ADDON, "OnCheck")
     DMComm:RegisterComm(TYPES.CHECK_BROADCAST, "OnCheckBroadcast")
@@ -33,6 +36,17 @@ function DMComm:OnDutySet(prefix, message, distribution, sender)
         if (duty.assignee == DMUtils:playerName()) then
             if (DMComm.callbacks.onDutySet ~= nil) then
                 DMComm.callbacks.onDutySet(duty)
+            end
+        end
+    end
+end
+
+function DMComm:OnDutyDeleted(prefix, message, distribution, sender)
+    local success, duty = LibAceSerializer:Deserialize(message)
+    if (success and duty.manager == sender and DMUtils:isManager(sender)) then
+        if (duty.assignee == DMUtils:playerName()) then
+            if (DMComm.callbacks.onDutyDeleted ~= nil) then
+                DMComm.callbacks.onDutyDeleted(duty)
             end
         end
     end
@@ -66,16 +80,31 @@ function DMComm:SetDuty(duty, onError, hasAddon)
             if (hasAddon) then
                 local data = LibAceSerializer:Serialize(duty);
                 DMComm:SendCommMessage(TYPES.SET_DUTY, data, "WHISPER", duty.assignee)
-            elseif (not DMUtils:isEmptyString(duty.task)) then
+            else
                 SendChatMessage("New duty assigned:", "WHISPER", nil, duty.assignee);
                 SendChatMessage(DMUtils:SerializeDuty(duty), "WHISPER", nil, duty.assignee);
                 SendChatMessage("Confirm by replying \"+\" or download Duty Manager for better user experience.", "WHISPER", nil, duty.assignee);
             end
         elseif (onError ~= nil) then
-            onError("offline")
+            onError("Player is offline")
         end
     elseif (onError ~= nil) then
-        onError("invalid")
+        onError("Player is not in your group")
+    end
+end
+
+function DMComm:DeleteDuty(duty, onError, hasAddon)
+    if (DMUtils:isInYourGroup(duty.assignee)) then
+        if (DMUtils:isOnline(duty.assignee)) then
+            if (hasAddon) then
+                local data = LibAceSerializer:Serialize(duty);
+                DMComm:SendCommMessage(TYPES.DELETE_DUTY, data, "WHISPER", duty.assignee)
+            end
+        elseif (onError ~= nil) then
+            onError("Player is offline")
+        end
+    elseif (onError ~= nil) then
+        onError("Player is not in your group")
     end
 end
 

@@ -134,13 +134,19 @@ function DMAdmin:getClassDutyList(raid, player)
     return {}, {""}
 end
 
+function DMAdmin:displayAssigningError(msg)
+    if (DMAdmin.var.frame ~= nil) then
+        DMAdmin.var.frame:SetStatusText("|cFFFF0000" .. "ASSIGNING ERROR: " .. msg .. "|r")
+    end
+end
+
 function DMAdmin:createDutyRow(duty, raidList, iconList, raid)
     local group = AceGUI:Create("SimpleGroup")
     group:SetRelativeWidth(1)
     group:SetLayout("Flow")
 
     local task = AceGUI:Create("EditBox")
-    task:SetLabel("Task")
+    task:SetLabel("Task *")
     task:SetText(duty == nil and "" or duty.task)
 
 
@@ -175,7 +181,7 @@ function DMAdmin:createDutyRow(duty, raidList, iconList, raid)
     local assigneeText
     if (duty == nil) then
         assignee = AceGUI:Create("Dropdown")
-        assignee:SetLabel("Assignee")
+        assignee:SetLabel("Assignee *")
         assignee:SetList(raidList)
         assignee:SetCallback("OnValueChanged", function (key)
             assigneeText = DMUtils:getNameFromClassString(raidList[assignee:GetValue()])
@@ -256,13 +262,13 @@ function DMAdmin:createDutyRow(duty, raidList, iconList, raid)
 
                 local validateError = DMAdmin:validate(newDuty);
                 if(validateError) then
-                    DMAdmin.var.frame:SetStatusText("|cFFFF0000" .. "ASSIGNING ERROR: " .. validateError .. "|r")
+                    DMAdmin:displayAssigningError(validateError)
                 else
                     DMAdmin:addNewAdminDuty(newDuty)
                     DMComm:SetDuty(
                             newDuty,
                             function (reason)
-                                print("could not send duty: " .. reason)
+                                DMAdmin:displayAssigningError(reason)
                             end,
                             DMSettingsAdmin.checks ~= nil and DMSettingsAdmin.checks[assigneeText]
                     )
@@ -296,15 +302,17 @@ function DMAdmin:createDutyRow(duty, raidList, iconList, raid)
                 function ()
                     DMAdmin:deleteAdminDuty(duty.id) -- TODO mozna delete az po success /confirm delete
 
-                    DMComm:SetDuty(
+                    DMComm:DeleteDuty(
                             {
                                 id=duty.id,
                                 manager=duty.manager,
                                 assignee=duty.assignee,
                             },
                             function (reason)
-                                print("could not send duty: " .. reason)
-                            end)
+                                DMAdmin:displayAssigningError(reason)
+                            end,
+                            DMSettingsAdmin.checks ~= nil and DMSettingsAdmin.checks[duty.assignee]
+                    )
 
                     DMAdmin:refresh(AdminDuties)
 
@@ -314,10 +322,10 @@ function DMAdmin:createDutyRow(duty, raidList, iconList, raid)
         local confirmedLabel = AceGUI:Create("Label")
         local confirmedLabelText;
         if(duty.confirmed) then
-           confirmedLabelText = "OK"
+           confirmedLabelText = "  OK"
             --duty.confirmed and DMUtils:createTextureString("interface/achievementframe/ui-achievement-criteria-check.blp") or ""
         else
-            confirmedLabelText = "pend"
+            confirmedLabelText = "  pending"
         end
         confirmedLabel:SetText(confirmedLabelText)
 
