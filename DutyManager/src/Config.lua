@@ -3,24 +3,46 @@ DMConfig = LibStub("AceAddon-3.0"):NewAddon("DMConfig")
 DMConfig = {
     version="0.0.1",
     raidTarget = {
-        SKULL="interface/targetingframe/ui-raidtargetingicon_8.blp",
-        CROSS="interface/targetingframe/ui-raidtargetingicon_7.blp",
-        BLUE="interface/targetingframe/ui-raidtargetingicon_6.blp",
-        MOON="interface/targetingframe/ui-raidtargetingicon_5.blp",
-        GREEN="interface/targetingframe/ui-raidtargetingicon_4.blp",
-        PURPLE="interface/targetingframe/ui-raidtargetingicon_3.blp",
-        ORANGE="interface/targetingframe/ui-raidtargetingicon_2.blp",
-        STAR="interface/targetingframe/ui-raidtargetingicon_1.blp",
-    },
-    raidTargetChat = {
-        SKULL="{Skull}",
-        CROSS="{Cross}",
-        BLUE="{Square}",
-        MOON="{Moon}",
-        GREEN="{Triangle}",
-        PURPLE="{Diamond}",
-        ORANGE="{Orange}",
-        STAR="{Star}",
+        SKULL={
+            icon="interface/targetingframe/ui-raidtargetingicon_8.blp",
+            chat="{Skull}",
+            order=1,
+        },
+        CROSS={
+            icon="interface/targetingframe/ui-raidtargetingicon_7.blp",
+            chat="{Cross}",
+            order=2,
+        },
+        BLUE={
+            icon="interface/targetingframe/ui-raidtargetingicon_6.blp",
+            chat="{Square}",
+            order=3,
+        },
+        MOON={
+            icon="interface/targetingframe/ui-raidtargetingicon_5.blp",
+            chat="{Moon}",
+            order=4,
+        },
+        GREEN={
+            icon="interface/targetingframe/ui-raidtargetingicon_4.blp",
+            chat="{Triangle}",
+            order=5,
+        },
+        PURPLE={
+            icon="interface/targetingframe/ui-raidtargetingicon_3.blp",
+            chat="{Diamond}",
+            order=6,
+        },
+        ORANGE={
+            icon="interface/targetingframe/ui-raidtargetingicon_2.blp",
+            chat="{Orange}",
+            order=7,
+        },
+        STAR={
+            icon="interface/targetingframe/ui-raidtargetingicon_1.blp",
+            chat="{Star}",
+            order=8,
+        },
     },
     taskList = {
         WARRIOR={

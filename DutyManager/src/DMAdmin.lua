@@ -380,7 +380,7 @@ function DMAdmin:fillAdminDuties(widget, duties)
 
     local iconList = {""}
     for k in pairs(DMConfig.raidTarget) do
-        iconList[#iconList + 1] = DMUtils:createTextureString(DMConfig.raidTarget[k])
+        iconList[DMConfig.raidTarget[k].order + 1] = DMUtils:createTextureString(DMConfig.raidTarget[k].icon)
     end
 
     if (duties ~= nil) then

@@ -126,8 +126,8 @@ function DMUtils:SerializeDuty(duty)
         str = str .. " -> "
         if (duty.icon ~= nil) then
             for k in pairs(DMConfig.raidTarget) do
-                if (DMConfig.raidTarget[k] == duty.icon) then
-                    str = str .. DMConfig.raidTargetChat[k] .. " "
+                if (DMConfig.raidTarget[k].icon == duty.icon) then
+                    str = str .. DMConfig.raidTarget[k].chat .. " "
                     break
                 end
             end
