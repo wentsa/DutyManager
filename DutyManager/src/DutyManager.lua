@@ -201,7 +201,11 @@ end
 function DutyManager:show(duties)
     if (not DutyManager.var.shown) then
         local frame = AceGUI:Create("DutyFrame")
-        frame:SetWidth(410)
+        if (DutyManager.var.minimized) then
+            frame:SetWidth(160)
+        else
+            frame:SetWidth(410)
+        end
         frame:SetHeight(35)
         frame:SetLayout("List");
         frame:SetCallback("OnClose", function() DutyManager:hide() end)

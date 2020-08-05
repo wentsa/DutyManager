@@ -5,6 +5,7 @@ DMAdmin.var = {
     shown=false,
     frame=nil,
     group=nil,
+    confirmWidgets={},
 }
 
 function DMAdmin:OnInitialize()
@@ -68,9 +69,9 @@ function DMAdmin:OnWhisperMessage(self, message, author)
             for index, value in ipairs(AdminDuties) do
                 if (value.assignee == sender) then
                     AdminDuties[index].confirmed = true
+                    DMAdmin:setConfirmedLabel(AdminDuties[index])
                 end
             end
-            DMAdmin:refresh(AdminDuties)
         end
     end
 end
@@ -107,7 +108,7 @@ function DMAdmin:onConfirmationSet(id, confirmed)
     local duty, idx = DMUtils:searchDutyById(id, AdminDuties)
     if (duty ~= nil) then
         AdminDuties[idx].confirmed = confirmed
-        DMAdmin:refresh(AdminDuties)
+        DMAdmin:setConfirmedLabel(duty)
     end
 end
 
@@ -315,14 +316,7 @@ function DMAdmin:createDutyRow(duty, raidList, iconList, raid)
         )
 
         local confirmedLabel = AceGUI:Create("Label")
-        local confirmedLabelText;
-        if(duty.confirmed) then
-           confirmedLabelText = "  OK"
-            --duty.confirmed and DMUtils:createTextureString("interface/achievementframe/ui-achievement-criteria-check.blp") or ""
-        else
-            confirmedLabelText = "  pending"
-        end
-        confirmedLabel:SetText(confirmedLabelText)
+        DMAdmin.var.confirmWidgets[duty.id] = confirmedLabel
 
         btnDelete:SetWidth(100)
         confirmedLabel:SetWidth(50)
@@ -332,6 +326,19 @@ function DMAdmin:createDutyRow(duty, raidList, iconList, raid)
     end
 
     return group
+end
+
+function DMAdmin:setConfirmedLabel(duty)
+    if (duty ~= nil and duty.id ~= nil and DMAdmin.var.confirmWidgets[duty.id] ~= nil) then
+        local confirmedLabelText
+        if(duty.confirmed) then
+            confirmedLabelText = "  OK"
+            --duty.confirmed and DMUtils:createTextureString("interface/achievementframe/ui-achievement-criteria-check.blp") or ""
+        else
+            confirmedLabelText = "  pending"
+        end
+        DMAdmin.var.confirmWidgets[duty.id]:SetText(confirmedLabelText)
+    end
 end
 
 function DMAdmin:addNewAdminDuty(duty)
@@ -379,6 +386,7 @@ function DMAdmin:fillAdminDuties(widget, duties)
     if (duties ~= nil) then
         for _, d in ipairs(duties) do
             local row = DMAdmin:createDutyRow(d, raidList, iconList, raid)
+            DMAdmin:setConfirmedLabel(d)
             widget:AddChild(row)
         end
     end
@@ -411,7 +419,7 @@ function DMAdmin:show(duties)
                     self.hooks[f].OnHide(f)
                 end
         )
-        frame.frame:SetFrameStrata("DIALOG")
+        frame.frame:SetFrameStrata("FULLSCREEN_DIALOG")
 
 
         DMAdmin.var.frame = frame
@@ -445,6 +453,7 @@ function DMAdmin:hide()
             DMAdmin.var = {
                 shown = false,
                 frame = nil,
+                confirmWidgets = {},
             };
         end
     end

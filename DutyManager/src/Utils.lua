@@ -30,7 +30,7 @@ function DMUtils:playerName()
 end
 
 function DMUtils:isOnline(unit)
-    print("isOnline ("..unit.."): ".. tostring(UnitIsConnected(unit)))
+    --print("isOnline ("..unit.."): ".. tostring(UnitIsConnected(unit)))
     return UnitIsConnected(unit)
 end
 
