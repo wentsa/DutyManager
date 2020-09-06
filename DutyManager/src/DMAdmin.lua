@@ -554,4 +554,21 @@ function DMAdmin:createMinimapButton()
 
     btn:ClearAllPoints();
     btn:SetPoint("TOPLEFT", Minimap, "TOPLEFT", 52 - (80 * cos(DMSettingsAdmin.minimapPosition)),(80 * sin(DMSettingsAdmin.minimapPosition)) - 52)
+
+    local tooltip = GameTooltip;
+    btn:SetScript("OnEnter", function()
+        if (tooltip ~= nil) then
+            tooltip:ClearLines();
+            tooltip:SetOwner(btn, "ANCHOR_NONE")
+            tooltip:ClearAllPoints()
+            tooltip:SetPoint("TOPRIGHT", btn, "BOTTOMRIGHT")
+            tooltip:AddLine("Duty Manager")
+            tooltip:Show();
+        end
+    end);
+    btn:SetScript("OnLeave", function()
+        if (tooltip ~= nil) then
+            tooltip:Hide()
+        end
+    end);
 end
