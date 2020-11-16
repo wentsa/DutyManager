@@ -1,0 +1,16 @@
+## Interface: 11304
+## Title: AuraSpy
+## Notes: Spy auras
+## Version: 0.0.1
+
+## SavedVariables: AuraReports
+## SavedVariablesPerCharacter:
+
+## Author: Tomas Chalupnik (tchalupnik.cz)
+
+embeds.xml
+
+Json.lua
+Config.lua
+Utils.lua
+AuraSpy.lua
